@@ -1,160 +1,51 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+def update_storage(data_dict, data_block):
+    data_dict.update(data_block)
+    return data_dict
 
-# C extensions
-*.so
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+def map_to_cache(cache_dict, memory_address, data_dict):
+    tag_section, block_section, _ = memory_address[:7], memory_address[7:11], memory_address[11:]
+    block_data = data_dict.get(memory_address[:11] + '000', None)
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+    if block_data is not None:
+        cache_dict[block_section] = [tag_section, block_data, 1]
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+    return cache_dict
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
 
-# Translations
-*.mo
-*.pot
+def check_cache_hit_or_miss(cache_dict, memory_address):
+    tag_section, block_section, _ = memory_address[:7], memory_address[7:11], memory_address[11:]
+    cache_line = cache_dict.get(block_section, None)
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+    if cache_line and cache_line[0] == tag_section and cache_line[2] == 1:
+        return "Cache Hit"
+    else:
+        return "Cache Miss"
 
-# Flask stuff:
-instance/
-.webassets-cache
 
-# Scrapy stuff:
-.scrapy
+data_dict_state = {}
+cache_dict_state = {f"{i:04b}": ["0000000", [0]*8, 0] for i in range(16)}
 
-# Sphinx documentation
-docs/_build/
+block_alpha = {"00001110101000": [10, 11, 12, 13, 14, 15, 16, 17]}  
+block_beta = {"00000110101000": [0, 1, 2, 3, 4, 5, 6, 7]}  
+block_gamma = {"00001110111000": [20, 21, 22, 23, 24, 25, 26, 27]}  
 
-# PyBuilder
-.pybuilder/
-target/
+data_dict_state = update_storage(data_dict_state, block_alpha)
+data_dict_state = update_storage(data_dict_state, block_beta)
+data_dict_state = update_storage(data_dict_state, block_gamma)
 
-# Jupyter Notebook
-.ipynb_checkpoints
+location_kappa = "00001110101010"  
+location_delta = "00000110101010"  
+location_epsilon = "00001110111111"  
 
-# IPython
-profile_default/
-ipython_config.py
+cache_dict_state = map_to_cache(cache_dict_state, location_kappa, data_dict_state)
+cache_dict_state = map_to_cache(cache_dict_state, location_delta, data_dict_state)
+cache_dict_state = map_to_cache(cache_dict_state, location_epsilon, data_dict_state)
 
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
+result_alpha = check_cache_hit_or_miss(cache_dict_state, location_delta)
+result_beta = check_cache_hit_or_miss(cache_dict_state, location_kappa)
+result_gamma = check_cache_hit_or_miss(cache_dict_state, location_epsilon)
 
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+print("Cache Hit or Miss for location_delta (equivalent to address_1):", result_alpha)
+print("Cache Hit or Miss for location_kappa (equivalent to address_2):", result_beta)
+print("Cache Hit or Miss for location_epsilon (equivalent to address_3):", result_gamma)
